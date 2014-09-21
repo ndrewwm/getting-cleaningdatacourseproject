@@ -1,0 +1,51 @@
+---
+title: "README"
+author: "Andrew Moore"
+date: "Saturday, September 20, 2014"
+output: html_document
+---
+
+This file accompanies the script in this repository. The script is organized into 8 sections.
+
+The script is written to extract the training/test datasets from the UCI HAR dataset, collected by Anguita et al. (2012). The script retrieves a zipped file containing the original datasets, imports them into R, attaches variable names, selects the subset of variables measuring mean & standard-deviation, merges both training & test sets, and then takes averages of each of the extracted variables in a new data-frame.
+
+This script assumes that the user will hold the UCI HAR file in their working directory. Section #1 deals with data download and import. If you have already downloaded the file and unzipped it, you can proceed from section 2.
+
+```
+if (!file.exists("HARdata")) {
+    dir.create("HARdata")
+    fileUrl <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+    
+    download.file(fileUrl, "HARdata.zip")
+    unzip("HARdata.zip")
+    download.time <<- date()
+    print(c("Your file was downloaded:", date()))
+}
+```
+
+Sections #2 and #3 import the training and test sets with their respective subject ID#s, and set of activities each subject completed.
+
+Section #4 retrieves the variable names extracted from features.txt and stores them as a character vector. Section #5 appends the variable names to the dataset, and then subsets all variables containing "mean" or "std" in their name into a new dataset.
+
+```
+training.set.mean <- training.set[, which(grepl("mean", names(training.set)))]
+training.set.std <- training.set[, which(grepl("std", names(training.set)))]
+
+training.set <- cbind(training.set.mean, training.set.std)
+rm(training.set.mean, training.set.std)
+```
+
+Section #6 uses rbind to merge the training and test datasets, and section #7 uses the sub and gsub functions to remove superfluous characters from each variable name.
+
+Section #8 uses the melt function from the reshape2 package to form a tall/narrow dataset. The average of each variable for each subject/activity is displayed in final column.
+
+```
+  id         activities      variable     value
+1  1            walking tbodyaccmeanx 0.2656969
+2  2   walking_upstairs tbodyaccmeanx 0.2731131
+3  3 walking_downstairs tbodyaccmeanx 0.2734287
+4  4            sitting tbodyaccmeanx 0.2741831
+5  5           standing tbodyaccmeanx 0.2791780
+6  6             laying tbodyaccmeanx 0.2723766
+
+```

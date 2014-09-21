@@ -1,0 +1,86 @@
+---
+title: "Course Project Codebook"
+author: "Andrew Moore"
+date: "Saturday, September 20, 2014"
+output: html_document
+---
+
+This document serves as a codebook for the dataset derived from the script included in this repository. After subsetting from the original HAR dataset, the dataset contains 79 different forms of measurement recorded from each subject's smartphone. 
+
+The initial features.txt document contains 561 different forms of measurement; use of the grepl function selected only variables that contain either "mean" or "std".
+
+```
+test.set.mean <- test.set[, which(grepl("mean", names(test.set)))]
+test.set.std <- test.set[, which(grepl("std", names(test.set)))]
+
+test.set <- cbind(test.set.mean, test.set.std)
+```
+
+Each variable serves as a measure of time domain (denoted by "t" affixed at the start of each name) or frequency domain (denoted by "f" affixed to the start of each name). The measurement source comes from either the smartphone's accelerometer or gyroscope. "x", "y", and "z" are used to denote axial positions, and are affixed to the tail of each variable name. "Jerk" signals and "Magnitude" measurements are denoted by  "jerk" or "mag" within the variable name.
+
+Superfluous characters were removed from each variable name using the sub and gsub functions.
+
+```
+Example measurement names before processsing:
+
+"fBodyAcc-meanFreq()-Y"           "fBodyAcc-meanFreq()-Z"          
+"fBodyAccJerk-mean()-X"           "fBodyAccJerk-mean()-Y"          
+"fBodyAccJerk-mean()-Z"           "fBodyAccJerk-meanFreq()-X"      
+"fBodyAccJerk-meanFreq()-Y"       "fBodyAccJerk-meanFreq()-Z"      
+"fBodyGyro-mean()-X"              "fBodyGyro-mean()-Y"
+```
+
+
+```
+Removing unnecessary characters:
+
+names(both) <- gsub("\\()", "", names(both))
+names(both) <- gsub("-", "", names(both))
+names(both) <- sub("bodybody", "body", names(both))
+names(both) <- tolower(names(both))
+
+```
+
+```
+Example measurement names after processing:
+
+"fbodyaccjerkmeanfreqy"    "fbodyaccjerkmeanfreqz"   
+"fbodygyromeanx"           "fbodygyromeany"          
+"fbodygyromeanz"           "fbodygyromeanfreqx"      
+"fbodygyromeanfreqy"       "fbodygyromeanfreqz"      
+"fbodyaccmagmean"          "fbodyaccmagmeanfreq"     
+"fbodyaccjerkmagmean"      "fbodyaccjerkmagmeanfreq" 
+```
+
+
+Activity labels were imported from their respective folders, and were transformed into factor variables. Each level of the factor was given the appropriate name based from the activity_labels.txt file included in the HAR zipped file.
+
+The labels are as follows:
+1- walking
+2- walking upstairs
+3- walking downstairs
+4- sitting
+5- standing
+6- laying
+
+```
+test.labels <- read.table("./test/y_test.txt")
+test.labels <- as.vector(test.labels[[1]])
+test.labels <- factor(test.labels, levels = 1:6, 
+                      labels = c("walking", "walking_upstairs", "walking_downstairs",
+                    "sitting", "standing", "laying"))
+```
+
+The script presents a final dataset with 4 variables and 2370 observations. The first variable is the subject's ID#, second denotes the type of activity being recorded, third denotes the form of measurement, and fourth denotes the measurement's value (an average of each variable for each subject). 
+
+```
+head(tidy)
+  id         activities      variable     value
+1  1            walking tbodyaccmeanx 0.2656969
+2  2   walking_upstairs tbodyaccmeanx 0.2731131
+3  3 walking_downstairs tbodyaccmeanx 0.2734287
+4  4            sitting tbodyaccmeanx 0.2741831
+5  5           standing tbodyaccmeanx 0.2791780
+6  6             laying tbodyaccmeanx 0.2723766
+
+```
